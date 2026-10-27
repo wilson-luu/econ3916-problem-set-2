@@ -1,1 +1,13 @@
-# econ3916-problem-set-2
+# ECON 3916 — Problem Set 2: The Survey That Wasn't Random
+
+## Overview
+An empirical and simulation-based audit of an in-app post-onboarding satisfaction survey where a product team observed a jump from **3.60 to 4.31** (out of 5) after a redesign. Using Monte Carlo population simulation, non-parametric bootstrapping, statistical power analysis, and Inverse Probability Weighting (IPW), this notebook demonstrates how **Missing Not At Random (MNAR)** self-selection bias corrupts post-redesign metrics and why neither larger sample sizes nor covariate reweighting can rescue a non-probability sample when response depends directly on the outcome.
+
+## Key Findings
+1. **Population Truth vs. Survey Illusion (Phase 1):** Across $N = 50,000$ simulated users per arm, the true satisfaction improvement was **$+0.10$ points** ($3.30 \to 3.40$). However, because the redesigned survey prompt became far more selective on satisfaction ($b: 0.45 \to 2.00$, $a: -1.0 \to -2.75$), response rates dropped from **$27.0\%$ to $15.0\%$** while the observed respondent mean jumped by **$+0.71$ points** ($3.60 \to 4.31$). Over $85\%$ of the apparent gain is selection bias.
+2. **Non-Parametric Uncertainty & Coverage (Phase 2):** Bootstrap 95% confidence intervals (manual loop and `scipy.stats.bootstrap` Percentile/BCa) are narrow around the observed respondent means ($[3.58, 3.62]$ pre; $[4.29, 4.33]$ post), resulting in **$0.0\%$ empirical coverage** of the true population mean ($3.40$). Under random sampling ($n = 100$), Parametric $t$, Percentile, and BCa intervals all achieve $\approx 94\text{–}95\%$ coverage within the Monte Carlo standard error ($\text{SE}_{\text{MC}} \approx 1.1\%$).
+3. **Hypothesis Testing & Power Analysis (Phase 3):** A two-sample Welch's $t$-test on respondents yields $t \approx 63.8$ ($p < 10^{-300}$, observed Cohen's $d \approx 0.85$ vs. true $d \approx 0.11$). A priori power analysis shows that detecting the true $+0.10$ improvement at $80\%$ power ($\alpha = 0.05$) requires **$n = 1,236$ random respondents per arm**. Scaling population size from $N = 1,000$ to $N = 250,000$ under the biased mechanism shrinks the standard error toward zero while locking in the $+0.61$-point bias (Xiao-Li Meng's 2018 Law of Large Populations).
+4. **Inverse Probability Weighting Under MNAR (Phase 4):** Reweighting respondents via logistic propensity scores on observed covariates (`engagement_z` and `had_support_ticket`) shifts the post-redesign estimate only slightly from **$4.31$ to $4.27$** ($95\%$ CI $[4.26, 4.29]$), leaving $+0.87$ points of bias because MAR ($R \perp Y \mid X$) is violated when response depends directly on latent satisfaction $s$.
+
+## Tech Stack
+* **Python 3:** `numpy`, `pandas`, `scipy.stats`, `statsmodels`, `scikit-learn`, `matplotlib`
